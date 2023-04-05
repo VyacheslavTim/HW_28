@@ -26,7 +26,7 @@ class UserDetailView(DetailView):
 
 class UserListView(ListView):
     model = User
-    queryset = User.objects.annotate(total_ads=Count("ad", filter=Q(ad__is_published=True)))
+    queryset = User.objects.annotate(total_ads=Count("job", filter=Q(job__is_published=True)))
 
     def get(self, request, *args, **kwargs):
         super().get(request, *args, **kwargs)
@@ -47,6 +47,7 @@ class UserCreateView(CreateView):
     model = User
     fields = "__all__"
 
+    @csrf_exempt
     def post(self, request, **kwargs):
         ad_data = json.loads(request.body)
 
@@ -66,14 +67,14 @@ class UserCreateView(CreateView):
                 loc, created = Location.objects.get_or_create(name=loc_name)
                 user.location.add(loc)
 
-            return JsonResponse({"id": user.pk,
-                                 "first_name": user.first_name,
-                                 "last_name": user.last_name,
-                                 "username": user.username,
-                                 "role": user.role,
-                                 "age": user.age,
-                                 "location": [loc.name for loc in user.location.all()]
-                                 }, safe=False)
+        return JsonResponse({"id": user.pk,
+                             "first_name": user.first_name,
+                             "last_name": user.last_name,
+                             "username": user.username,
+                             "role": user.role,
+                             "age": user.age,
+                             "location": [loc.name for loc in user.location.all()]
+                             }, safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -100,14 +101,14 @@ class UserUpdateView(UpdateView):
                 loc, created = Location.objects.get_or_create(name=loc_name)
                 self.object.location.add(loc)
 
-            return JsonResponse({"id": self.object.pk,
-                                 "first_name": self.object.first_name,
-                                 "last_name": self.object.last_name,
-                                 "username": self.object.username,
-                                 "role": self.object.role,
-                                 "age": self.object.age,
-                                 "location": [loc.name for loc in self.object.location.all()]
-                                 }, safe=False)
+        return JsonResponse({"id": self.object.pk,
+                             "first_name": self.object.first_name,
+                             "last_name": self.object.last_name,
+                             "username": self.object.username,
+                             "role": self.object.role,
+                             "age": self.object.age,
+                             "location": [loc.name for loc in self.object.location.all()]
+                             }, safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -119,4 +120,4 @@ class UserDeleteView(DeleteView):
         user = self.get_object()
         user_id = user.id
         super().delete(request, *args, **kwargs)
-        return JsonResponse({"status": "ok"}, {"id": user_id}, safe=False)
+        return JsonResponse({"status": "ok", "id": user_id}, safe=False)
